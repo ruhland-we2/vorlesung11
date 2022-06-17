@@ -1,9 +1,9 @@
 // jwt JSON-Web-Ticket in Action
 // Web Engineering and XML-Applications
-// npm i -D express
-// npm i -D jsonwebtoken
-// npm i -D node-rsa
-// npm i -D base-64
+// npm i express
+// npm i jsonwebtoken
+// npm i node-rsa
+// npm i base-64
 
 const express = require("express")
 const jwt = require("jsonwebtoken")
@@ -12,12 +12,12 @@ const base64 = require('base-64')
 const fs = require('fs')
 
 const app = express()
-const key = new NodeRSA({b: 512})
-key.generateKeyPair()
-const publickey = key.exportKey('pkcs8-public-pem')
-const privatekey = key.exportKey('pkcs1-pem')
-//const publickey = fs.readFileSync('./openssl/public.pem','utf-8')
-//const privatekey = fs.readFileSync('./openssl/private.pem','utf-8')
+//const key = new NodeRSA({b: 512})
+//key.generateKeyPair()
+//onst publickey = key.exportKey('pkcs8-public-pem')
+//const privatekey = key.exportKey('pkcs1-pem')
+const publickey = fs.readFileSync('./openssl/public.pem','utf-8')
+const privatekey = fs.readFileSync('./openssl/private.pem','utf-8')
 
 const port = 3000
 
