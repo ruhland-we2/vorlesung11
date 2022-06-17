@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT</title>
+    <script>
+      const URL_JWT = "http://localhost:3000/jwt";
+      const URL_SECRET = "http://localhost:3000/secret/";
+      let token = null;
+      let httpHeaders = null;
+
+      document.addEventListener("DOMContentLoaded", function(event){
+        let get_jwt_button = document.getElementById("get-jwt-button");
+        let jwt_result = document.getElementById("jwt-result");
+
+        let call_safe_rest_button = document.getElementById("call-safe-rest-button");
+        let rest_result = document.getElementById("rest-result");
+
+        get_jwt_button.addEventListener("click",function(){
+          fetch(URL_JWT)
+            .then(response => response.json())
+            .then(data => {
+              jwt_result.innerText=JSON.stringify(data.jwt);
+              token = data.jwt;
+              httpHeaders = { 
+                'Authorization' : `Bearer ${token}`
+              };
+            })
+            .catch(function(e) {
+              console.log(e);
+              jwt_result.innerText="error";
+            });
+        });
+
+        call_safe_rest_button.addEventListener("click",function(){
+          fetch(URL_SECRET,{ method: 'GET', headers: httpHeaders})
+            .then(response => response.json())
+            .then(data => {
+              rest_result.innerText=JSON.stringify(data);
+            })
+            .catch(function(e) {
+              console.log(e);
+              rest_result.innerText="error";
+            });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1>JWT Rest example</h1>
+    <button id="get-jwt-button">Get Token</button>
+    <div id="jwt-result"></div>
+    <button id="call-safe-rest-button">Rest with token</button>
+    <div id="rest-result"></div>
+  </body>
+</html>
