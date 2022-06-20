@@ -4,12 +4,14 @@
 // npm i jsonwebtoken
 // npm i node-rsa
 // npm i base-64
+// npm i crypto-js
 
-const express = require("express")
-const jwt = require("jsonwebtoken")
-const NodeRSA = require('node-rsa')
-const base64 = require('base-64')
-const fs = require('fs')
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const NodeRSA = require('node-rsa');
+const base64 = require('base-64');
+const fs = require('fs');
+const CryptoJS = require('crypto-js');
 
 const app = express()
 //const key = new NodeRSA({b: 512})
@@ -19,7 +21,18 @@ const app = express()
 const publickey = fs.readFileSync('./openssl/public.pem','utf-8')
 const privatekey = fs.readFileSync('./openssl/private.pem','utf-8')
 
-const port = 3000
+const port = 3000;
+
+function getFingerprintHash(req){
+    let fingerprint = {
+        host: req.get("Host"),
+        agent: req.get('User-Agent'),
+        accept: req.get('Accept'),
+        accept_encoding: req.get('Accept-Encoding'),
+        accept_language: req.get('Accept-Language')
+    };
+    return CryptoJS.SHA256(JSON.stringify(fingerprint)).toString();
+}
 
 function isAuthenticated(req, res, next) {
     if (typeof req.headers.authorization !== "undefined") {
@@ -37,12 +50,12 @@ function isAuthenticated(req, res, next) {
             }
             let payload = token.split(".")[1];
             let payload_obj = JSON.parse(base64.decode(payload));
-            let actual_ip = req.ip;
-            let actual_agent = req.get('User-Agent');
+            let fingerprint_hash = getFingerprintHash(req);
+            let payload_hash = payload_obj.body.hash;
 
-            if ( payload_obj.body.ipaddress !== actual_ip || payload_obj.body.agent !== actual_agent ){  
-                res.status(500).json({ error: "Not Authorized Agent or IP" });
-                throw new Error("Not Authorized Agent or IP");
+            if ( payload_hash !== fingerprint_hash ){  
+                res.status(500).json({ error: "Not Authorized Agent" });
+                throw new Error("Not Authorized Agent");
             }
 
             // if the JWT is valid, allow them to hit
@@ -70,10 +83,8 @@ app.get('/readme', (req,res) => {
 
 app.get('/jwt', (req,res) => {
     let payload = {
-            "username": "kruhland",
-            "ipaddress": req.ip,
-            "agent": req.get('User-Agent')
-        }
+            "hash": getFingerprintHash(req)
+        };
     let token = jwt.sign({ "body" : payload}, privatekey, {algorithm: 'HS256', expiresIn: '24h'})
     res.json({"jwt": token});
 })
